@@ -1,5 +1,7 @@
 import express, { Request, response, Response, urlencoded } from 'express';
-import users from '../MOCK_DATA.json'
+import usersData from '../MOCK_DATA.json'
+
+let users = [...usersData]
 
 
 const app = express();
@@ -26,30 +28,30 @@ app.get('/users', (req: Request, res: Response) => {
   res.send(html)
 })
 
-app.get('/api/users',(req,res)=>{
+app.get('/api/users', (req, res) => {
   res.send(users)
 })
 
-app.get('/api/user/:id',(req:Request,res:Response)=>{
-  const id:number = Number(req.params.id)
-  const user =users.find((user)=>user.id===id)
-  res.send(user)
+app.get('/api/user/:id', (req: Request, res: Response) => {
+  const id: number = Number(req.params.id)
+  const user = users.find((user) => user.id === id)
+  res.status(200).send(user)
+})
+app.delete('/api/user/:id', (req, res) => {
+  const user = users.find((user) => user.id === Number(req.params.id))
+  if (!user) {
+    res.status(404).send({ err: "An error occurs" })
+  }
+  users = users.filter((user) => user.id !== Number(req.params.id))
+  res.send({message:"user deleted succesfully",users})
 })
 
-app.post('/api/users',(req,res)=>{
-  const user= {id:users.length+1,...req.body}
+app.post('/api/users', (req, res) => {
+  const user = { id: users.length + 1, ...req.body }
   users.push(user)
-  
-  res.send(users)
+  res.status(201).json({ id: users.length, status: "Succes" })
 })
 
-
-
-
-app.post('/users', (req: Request, res: Response) => {
-  console.log(req.body)
-  res.send(`this is your response from post req ${JSON.stringify(req.body)}`)
-})
 
 
 app.listen(PORT, () => console.log(`Server is started at port ${PORT}`))
