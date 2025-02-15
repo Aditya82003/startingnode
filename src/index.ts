@@ -36,6 +36,13 @@ app.get('/api/user/:id',(req:Request,res:Response)=>{
   res.send(user)
 })
 
+app.post('/api/users',(req,res)=>{
+  const user= {id:users.length+1,...req.body}
+  users.push(user)
+  
+  res.send(users)
+})
+
 
 
 
