@@ -35,6 +35,9 @@ app.get('/api/users', (req, res) => {
 app.get('/api/user/:id', (req: Request, res: Response) => {
   const id: number = Number(req.params.id)
   const user = users.find((user) => user.id === id)
+  if(!user){
+    res.status(404).send({message:"Please enter valid id"})
+  }
   res.status(200).send(user)
 })
 app.delete('/api/user/:id', (req, res) => {
@@ -43,13 +46,19 @@ app.delete('/api/user/:id', (req, res) => {
     res.status(404).send({ err: "An error occurs" })
   }
   users = users.filter((user) => user.id !== Number(req.params.id))
-  res.send({message:"user deleted succesfully",users})
+  res.send({ message: "user deleted succesfully", users })
+})
+app.patch('/api/user/:id', (req, res) => {
+  console.log(req.body)
+  const id = Number(req.params.id)
+  users[id-1]={...users[id-1],...req.body}
+  res.send(users[id-1])
 })
 
 app.post('/api/users', (req, res) => {
   const user = { id: users.length + 1, ...req.body }
   users.push(user)
-  res.status(201).json({ id: users.length, status: "Succes" })
+  res.status(201).json({ id: users.length, status: "Success" })
 })
 
 
