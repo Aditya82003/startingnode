@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
   gender: {
     type: String
   }
-},{timestamps:true})
+}, { timestamps: true })
 
 const User = mongoose.model("user", userSchema)
 
@@ -44,7 +44,7 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 app.get('/users', async (req: Request, res: Response) => {
-  const allUsers =await User.find({})
+  const allUsers = await User.find({})
   const html = `
   <ul>
   ${allUsers.map((user) => `<li>${user.firstName}</li>`).join("")}
@@ -53,8 +53,8 @@ app.get('/users', async (req: Request, res: Response) => {
   res.send(html)
 })
 
-app.get('/api/users', async(_, res) => {
-  const allUsers =await User.find({})
+app.get('/api/users', async (_, res) => {
+  const allUsers = await User.find({})
   res.status(200).send(allUsers)
 })
 
@@ -66,14 +66,26 @@ app.get('/api/user/:id', (req: Request, res: Response) => {
   }
   res.status(200).send(user)
 })
-app.delete('/api/user/:id', (req, res) => {
-  const user = users.find((user) => user.id === Number(req.params.id))
-  if (!user) {
-    res.status(404).send({ err: "An error occurs" })
+
+app.delete('/api/user/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: "Please enter a valid user ID" });
+      return
+    }
+    const result = await User.findByIdAndDelete(id)
+    if (!result) {
+      res.status(404).json({ message: "User not found" })
+      return
+    }
+    res.status(200).send({ message: "successfully deleted", UserName: result?.firstName })
   }
-  users = users.filter((user) => user.id !== Number(req.params.id))
-  res.send({ message: "user deleted succesfully", users })
+  catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 })
+
 app.patch('/api/user/:id', (req, res) => {
   console.log(req.body)
   const id = Number(req.params.id)
