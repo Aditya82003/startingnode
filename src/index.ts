@@ -1,8 +1,6 @@
 import express, { Request, Response, urlencoded } from 'express';
 import mongoose from 'mongoose';
-import usersData from '../MOCK_DATA.json'
 
-let users = [...usersData]
 
 
 const app = express();
