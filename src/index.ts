@@ -39,11 +39,8 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("user", userSchema)
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!')
-})
 
-app.get('/users', async (req: Request, res: Response) => {
+app.get('/users', async (_, res) => {
   const allUsers = await User.find({})
   const html = `
   <ul>
@@ -58,11 +55,16 @@ app.get('/api/users', async (_, res) => {
   res.status(200).send(allUsers)
 })
 
-app.get('/api/user/:id', (req: Request, res: Response) => {
-  const id: number = Number(req.params.id)
-  const user = users.find((user) => user.id === id)
+app.get('/api/user/:id', async (req, res) => {
+  const id = req.params.id
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ message: "Please enter a valid user ID" });
+    return
+  }
+  const user = await User.findById(id)
   if (!user) {
-    res.status(404).send({ message: "Please enter valid id" })
+    res.status(400).send({ message: "User not found" })
+    return
   }
   res.status(200).send(user)
 })
@@ -86,12 +88,27 @@ app.delete('/api/user/:id', async (req, res) => {
   }
 })
 
-app.patch('/api/user/:id', (req, res) => {
-  console.log(req.body)
-  const id = Number(req.params.id)
-  users[id - 1] = { ...users[id - 1], ...req.body }
-  res.send(users[id - 1])
+app.patch('/api/user/:id', async (req, res) => {
+  const id = req.params.id
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ message: "Please enter a valid user ID" });
+    return
+  }
+  try{
+  const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true })
+  if(!updatedUser){
+    res.status(400).send({message:"User not found"})
+    return
+  }
+  console.log(updatedUser)
+  res.status(200).json({ message: "User successfully updated", Time: updatedUser?.updatedAt })
+  }
+  catch(error){
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 })
+
 
 app.post('/api/users', async (req: Request, res: Response) => {
   try {
